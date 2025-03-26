@@ -1,0 +1,18 @@
+name: ca_learning_dev
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./:/app:cached
+      - pip-cache:/root/.cache/pip
+    environment:
+      - PYTHONPATH=/app
+      - SERVICE_DEBUG=true
+    command: sleep infinity  # Keep container running for VS Code
+
+volumes:
+  pip-cache:
