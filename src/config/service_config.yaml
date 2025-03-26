@@ -1,0 +1,15 @@
+app:
+  name: "Clean Architecture Service"
+  version: "1.0.0"
+  description: "A service implemented using Clean Architecture principles"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+
+cors:
+  allow_origins: ["*"]
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]
