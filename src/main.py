@@ -1,8 +1,8 @@
 import asyncio
 import signal
 import sys
+import threading
 from pathlib import Path
-from typing import Set
 import uvicorn
 from src.config.settings import Settings
 from src.config.logging_config import configure_logging
@@ -11,72 +11,62 @@ from src.infrastructure.logging_context import get_contextual_logger
 
 logger = None  # Will be configured by configure_logging
 
-class SignalHandler:
-    """Handle system signals for graceful shutdown."""
-    
-    def __init__(self):
-        self._shutdown_requested = False
-        self._tasks: Set[asyncio.Task] = set()
-        
-    @property
-    def shutdown_requested(self) -> bool:
-        return self._shutdown_requested
-        
-    def request_shutdown(self, signum, frame):
-        """Request application shutdown."""
-        if logger:
-            logger.info(f"Received signal {signum}, initiating shutdown")
-        self._shutdown_requested = True
-        
-    def setup_signal_handlers(self):
-        """Setup signal handlers for graceful shutdown."""
-        signal.signal(signal.SIGTERM, self.request_shutdown)
-        signal.signal(signal.SIGINT, self.request_shutdown)
 
-async def start_application(settings: Settings, signal_handler: SignalHandler):
-    """Start and manage the application lifecycle."""
-    config = uvicorn.Config(
-        app=create_app(settings),
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_config=None,  # Disable uvicorn's logging config to use ours
-        lifespan="on"  # Ensure lifespan events are properly handled
-    )
-    server = uvicorn.Server(config)
-    
-    # Override server signal handling to use our handler
-    server.should_exit = lambda: signal_handler.shutdown_requested
-    
-    # Use a cleaner approach to handle server shutdown
-    try:
-        await server.serve()
-    except asyncio.CancelledError:
-        logger.info("Server task was cancelled, shutting down gracefully")
+class AppServer:
+    """Wrapper for Uvicorn server with proper shutdown handling."""
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.should_exit = threading.Event()
+        self.app = create_app(settings)
+
+    def run(self):
+        """Run the server in a way that can be properly stopped."""
+        logger.info(
+            f"Starting server on http://{self.settings.host}:{self.settings.port}"
+        )
+
+        # Run Uvicorn directly (this is a blocking call)
+        uvicorn.run(
+            app=self.app,
+            host=self.settings.host,
+            port=self.settings.port,
+            lifespan="on",
+            loop="asyncio",
+        )
+
+    def handle_exit(self, sig, frame):
+        """Handle exit signal."""
+        logger.info(f"Received exit signal {sig}, shutting down...")
+        self.should_exit.set()
+
 
 def main():
     try:
         # Load settings from YAML and environment variables
         config_path = Path(__file__).parent / "config" / "service_config.yaml"
         settings = Settings.from_yaml(config_path)
-        
+
         # Configure logging first
         configure_logging(debug=settings.debug)
-        
+
         # Get logger after configuration
         global logger
         logger = get_contextual_logger(__name__)
-        
+
         logger.info(f"Loading configuration from {config_path}")
         logger.info(f"Starting {settings.app_name} version {settings.app_version}")
-        
-        # Setup signal handling
-        signal_handler = SignalHandler()
-        signal_handler.setup_signal_handlers()
-        
-        # Run the application
-        asyncio.run(start_application(settings, signal_handler))
-        
+
+        # Create and run server
+        server = AppServer(settings)
+
+        # Set up signal handlers
+        signal.signal(signal.SIGINT, server.handle_exit)
+        signal.signal(signal.SIGTERM, server.handle_exit)
+
+        # Run the server (this is blocking)
+        server.run()
+
     except KeyboardInterrupt:
         logger.info("Received keyboard interrupt, shutting down")
     except Exception as e:
@@ -89,6 +79,7 @@ def main():
     finally:
         if logger:
             logger.info("Application shutdown complete")
+
 
 if __name__ == "__main__":
     main()
