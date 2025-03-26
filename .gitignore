@@ -37,6 +37,7 @@ htmlcov/
 .tox/
 nosetests.xml
 coverage.xml
+junit.xml
 *.cover
 .hypothesis/
 
