@@ -8,6 +8,7 @@ from ...infrastructure.logging_context import get_contextual_logger, operation_c
 
 logger = get_contextual_logger(__name__)
 
+
 class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
     """Presenter for service-related outputs."""
 
@@ -19,7 +20,9 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
 
     def _to_response_dto(self, dto: ServiceDTO) -> ServiceResponseDTO:
         """Convert internal DTO to response DTO."""
-        with operation_context("convert_to_response_dto", logger, service_id=str(dto.id)):
+        with operation_context(
+            "convert_to_response_dto", logger, service_id=str(dto.id)
+        ):
             try:
                 return ServiceResponseDTO(
                     id=dto.id,
@@ -27,13 +30,13 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
                     description=dto.description,
                     created_at=dto.created_at,
                     updated_at=dto.updated_at,
-                    is_active=dto.is_active
+                    is_active=dto.is_active,
                 )
             except Exception as e:
-                logger.error("Error converting DTO to response", extra={
-                    "error": str(e),
-                    "service_id": str(dto.id)
-                })
+                logger.error(
+                    "Error converting DTO to response",
+                    extra={"error": str(e), "service_id": str(dto.id)},
+                )
                 raise
 
     def present_service(self, service: Optional[ServiceDTO]) -> None:
@@ -41,7 +44,9 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
         with operation_context("present_service", logger):
             if service:
                 try:
-                    logger.debug("Presenting service", extra={"service_id": str(service.id)})
+                    logger.debug(
+                        "Presenting service", extra={"service_id": str(service.id)}
+                    )
                     self.response = self._to_response_dto(service)
                 except Exception as e:
                     logger.error("Error presenting service", extra={"error": str(e)})
@@ -72,15 +77,19 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
 
     def present_created_service(self, service: ServiceDTO) -> None:
         """Present the created service."""
-        with operation_context("present_created_service", logger, service_id=str(service.id)):
+        with operation_context(
+            "present_created_service", logger, service_id=str(service.id)
+        ):
             try:
-                logger.info("Presenting created service", extra={
-                    "service_id": str(service.id),
-                    "name": service.name
-                })
+                logger.info(
+                    "Presenting created service",
+                    extra={"service_id": str(service.id), "name": service.name},
+                )
                 self.response = self._to_response_dto(service)
             except Exception as e:
-                logger.error("Error presenting created service", extra={"error": str(e)})
+                logger.error(
+                    "Error presenting created service", extra={"error": str(e)}
+                )
                 self.error = str(e)
 
     def present_creation_error(self, message: str) -> None:

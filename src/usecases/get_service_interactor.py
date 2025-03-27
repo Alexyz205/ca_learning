@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from ..domain.service_repository import ServiceRepository
+from ..interface_adapters.repositories.service_repository import ServiceRepository
 from ..domain.exceptions import ServiceNotFoundError
 from .get_service_input_port import GetServiceInputPort
 from .get_service_output_port import GetServiceOutputPort
@@ -13,10 +13,13 @@ from ..infrastructure.metrics_decorator import track_operation
 
 logger = get_contextual_logger(__name__)
 
+
 class GetServiceInteractor(GetServiceInputPort):
     """Implementation of the get service use case."""
 
-    def __init__(self, repository: ServiceRepository, output_port: GetServiceOutputPort):
+    def __init__(
+        self, repository: ServiceRepository, output_port: GetServiceOutputPort
+    ):
         self.repository = repository
         self.output_port = output_port
         logger.debug("Initialized GetServiceInteractor")
@@ -33,7 +36,7 @@ class GetServiceInteractor(GetServiceInputPort):
                     description=service.description,
                     created_at=service.created_at,
                     updated_at=service.updated_at,
-                    is_active=service.is_active
+                    is_active=service.is_active,
                 )
                 self.output_port.present_service(dto)
                 return dto
@@ -59,14 +62,14 @@ class GetServiceInteractor(GetServiceInputPort):
                         description=service.description,
                         created_at=service.created_at,
                         updated_at=service.updated_at,
-                        is_active=service.is_active
+                        is_active=service.is_active,
                     )
                     for service in services
                 ]
-                
+
                 # Update metric for total number of services
                 SERVICES_COUNT.set(len(dtos))
-                
+
                 logger.info("Retrieved services", extra={"count": len(dtos)})
                 self.output_port.present_services(dtos)
                 return dtos

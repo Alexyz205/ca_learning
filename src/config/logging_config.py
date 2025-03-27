@@ -1,6 +1,7 @@
 import logging.config
 import sys
 
+
 def configure_logging(debug: bool = False) -> None:
     """Configure application-wide logging."""
     config = {
@@ -44,5 +45,5 @@ def configure_logging(debug: bool = False) -> None:
             },
         },
     }
-    
+
     logging.config.dictConfig(config)
