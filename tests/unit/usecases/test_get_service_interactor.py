@@ -1,6 +1,8 @@
 import pytest
 from uuid import UUID
 from src.application.get_service_interactor import GetServiceInteractor
+from src.domain.service_entity import Service
+from src.domain.exceptions import ServiceNotFoundError
 from tests.unit.usecases.mocks import (
     MockServiceRepository,
     MockGetServiceOutputPort,
@@ -32,6 +34,7 @@ def test_get_service_success(service_entity):
 
     # Then
     assert result is not None
+    assert isinstance(result, Service)  # Verify we get a domain entity
     assert result.id == service_entity.id
     assert result.name == service_entity.name
     assert result.description == service_entity.description
@@ -39,8 +42,9 @@ def test_get_service_success(service_entity):
     # Verify the repository was called
     assert repository.get_by_id_called is True
 
-    # Verify the output port was called with correct data
+    # Verify the output port was called with correct domain entity
     assert output_port.presented_service is not None
+    assert isinstance(output_port.presented_service, Service)  # Verify domain entity
     assert output_port.presented_service.id == service_entity.id
     assert output_port.error is None
 
@@ -73,6 +77,7 @@ def test_get_service_not_found():
     # Verify the output port was called with an error
     assert output_port.presented_service is None
     assert output_port.error is not None
+    assert "not found" in output_port.error.lower()
 
 
 def test_get_all_services(service_entity):
@@ -97,14 +102,16 @@ def test_get_all_services(service_entity):
 
     # Then
     assert len(result) == 1
+    assert isinstance(result[0], Service)  # Verify we get domain entities
     assert result[0].id == service_entity.id
 
     # Verify the repository was called
     assert repository.get_all_called is True
 
-    # Verify the output port was called with correct data
+    # Verify the output port was called with correct domain entities
     assert output_port.presented_services is not None
     assert len(output_port.presented_services) == 1
+    assert isinstance(output_port.presented_services[0], Service)  # Verify domain entity
     assert output_port.presented_services[0].id == service_entity.id
 
 

@@ -2,6 +2,7 @@ from typing import Optional, List, Callable
 from uuid import UUID
 
 from src.domain.service_entity import Service
+from src.domain.exceptions import ServiceNotFoundError
 from src.application.repositories.service_repository import ServiceRepository
 from src.application.get_service_output_port import GetServiceOutputPort
 from src.application.create_service_output_port import CreateServiceOutputPort
@@ -27,9 +28,12 @@ class MockServiceRepository(ServiceRepository):
         self.services[service.id] = service
         return service
 
-    def get_by_id(self, service_id: UUID) -> Optional[Service]:
+    def get_by_id(self, service_id: UUID) -> Service:
         self.get_by_id_called = True
-        return self.services.get(service_id)
+        service = self.services.get(service_id)
+        if not service:
+            raise ServiceNotFoundError(f"Service with ID {service_id} not found")
+        return service
 
     def get_all(self) -> List[Service]:
         self.get_all_called = True
@@ -37,15 +41,17 @@ class MockServiceRepository(ServiceRepository):
 
     def update(self, service: Service) -> Service:
         self.update_called = True
+        if service.id not in self.services:
+            raise ServiceNotFoundError(f"Service with ID {service.id} not found")
         self.services[service.id] = service
         return service
 
     def delete(self, service_id: UUID) -> bool:
         self.delete_called = True
-        if service_id in self.services:
-            del self.services[service_id]
-            return True
-        return False
+        if service_id not in self.services:
+            raise ServiceNotFoundError(f"Service with ID {service_id} not found")
+        del self.services[service_id]
+        return True
 
 
 class MockGetServiceOutputPort(GetServiceOutputPort):
@@ -56,10 +62,10 @@ class MockGetServiceOutputPort(GetServiceOutputPort):
         self.presented_services = None
         self.error = None
 
-    def present_service(self, service: Optional[ServiceDTO]) -> None:
+    def present_service(self, service: Optional[Service]) -> None:
         self.presented_service = service
 
-    def present_services(self, services: List[ServiceDTO]) -> None:
+    def present_services(self, services: List[Service]) -> None:
         self.presented_services = services
 
     def present_error(self, message: str) -> None:
