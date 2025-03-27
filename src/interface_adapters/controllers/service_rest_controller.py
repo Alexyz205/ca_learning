@@ -2,12 +2,15 @@ from typing import List
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import JSONResponse
-from ..dtos.service_response_dto import ServiceListResponseDTO, ServiceResponseDTO
-from ..dtos.service_request_dto import CreateServiceRequest
+from ...infrastructure.dtos.service_response_dto import (
+    ServiceListResponseDTO,
+    ServiceResponseDTO,
+)
+from ...infrastructure.dtos.service_request_dto import CreateServiceRequest
 from ...infrastructure.dependency_context import with_logging_context
 from ...infrastructure.logging_context import get_contextual_logger, operation_context
-from ...usecases.get_service_interactor import GetServiceInteractor
-from ...usecases.create_service_interactor import CreateServiceInteractor
+from ...application.get_service_interactor import GetServiceInteractor
+from ...application.create_service_interactor import CreateServiceInteractor
 from ...domain.exceptions import ServiceNotFoundError, ServiceValidationError
 from ...infrastructure.container import Container
 

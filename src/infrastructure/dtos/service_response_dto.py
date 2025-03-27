@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 
-from ...usecases.service_dto import ServiceDTO
+from ...application.service_dto import ServiceDTO
 
 
 class ServiceResponseDTO(BaseModel):
@@ -28,8 +28,8 @@ class ServiceResponseDTO(BaseModel):
             is_active=dto.is_active,
         )
 
-    class ConfigDict:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "name": "Example Service",
@@ -39,24 +39,10 @@ class ServiceResponseDTO(BaseModel):
                 "is_active": True,
             }
         }
+    )
 
 
 class ServiceListResponseDTO(BaseModel):
     """DTO for service list responses in the REST API."""
 
     services: List[ServiceResponseDTO] = []
-
-
-class CreateServiceRequestDTO(BaseModel):
-    """DTO for service creation requests in the REST API."""
-
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str = Field("", max_length=500)
-
-    class ConfigDict:
-        json_schema_extra = {
-            "example": {
-                "name": "New Service",
-                "description": "Description of the new service",
-            }
-        }

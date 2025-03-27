@@ -11,10 +11,11 @@ class CreateServiceRequest(BaseModel):
         "", max_length=500, description="Description of the service"
     )
 
-    class ConfigDict:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "Example Service",
                 "description": "This is an example service.",
             }
         }
+    )

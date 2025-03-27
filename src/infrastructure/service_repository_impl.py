@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Dict
 from uuid import UUID
 
-from ..interface_adapters.repositories.service_repository import ServiceRepository
+from ..application.repositories.service_repository import ServiceRepository
 from ..domain.service_entity import Service
 from ..domain.exceptions import ServiceNotFoundError, ServiceAlreadyExistsError
 from .logging_context import get_contextual_logger, operation_context

@@ -2,10 +2,10 @@ from typing import Optional, List
 from uuid import UUID
 
 from src.domain.service_entity import Service
-from src.interface_adapters.repositories.service_repository import ServiceRepository
-from src.usecases.get_service_output_port import GetServiceOutputPort
-from src.usecases.create_service_output_port import CreateServiceOutputPort
-from src.usecases.service_dto import ServiceDTO
+from src.application.repositories.service_repository import ServiceRepository
+from src.application.get_service_output_port import GetServiceOutputPort
+from src.application.create_service_output_port import CreateServiceOutputPort
+from src.application.service_dto import ServiceDTO
 
 
 class MockServiceRepository(ServiceRepository):

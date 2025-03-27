@@ -1,10 +1,10 @@
 from typing import Optional
 from contextlib import AsyncExitStack
-from ..interface_adapters.repositories.service_repository import ServiceRepository
+from ..application.repositories.service_repository import ServiceRepository
 from .service_repository_impl import InMemoryServiceRepository
 from ..interface_adapters.presenters.service_presenter import ServicePresenter
-from ..usecases.get_service_interactor import GetServiceInteractor
-from ..usecases.create_service_interactor import CreateServiceInteractor
+from ..application.get_service_interactor import GetServiceInteractor
+from ..application.create_service_interactor import CreateServiceInteractor
 from .logging_context import get_contextual_logger
 
 logger = get_contextual_logger(__name__)

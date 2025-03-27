@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from ..interface_adapters.repositories.service_repository import ServiceRepository
+from ..application.repositories.service_repository import ServiceRepository
 from ..domain.exceptions import ServiceNotFoundError
 from .get_service_input_port import GetServiceInputPort
 from .get_service_output_port import GetServiceOutputPort

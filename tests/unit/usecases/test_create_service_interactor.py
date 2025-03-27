@@ -1,7 +1,10 @@
 import pytest
-from src.usecases.create_service_interactor import CreateServiceInteractor
-from src.usecases.service_dto import ServiceDTO
-from tests.unit.usecases.mocks import MockServiceRepository, MockCreateServiceOutputPort
+from src.application.create_service_interactor import CreateServiceInteractor
+from src.application.service_dto import ServiceDTO
+from tests.unit.usecases.mocks import (
+    MockServiceRepository,
+    MockCreateServiceOutputPort,
+)
 
 
 def test_create_service_success(service_data):

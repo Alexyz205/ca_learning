@@ -69,7 +69,7 @@ def service_entity(service_id):
 @pytest.fixture
 def service_dto(service_id):
     """Fixture for a service DTO."""
-    from src.usecases.service_dto import ServiceDTO
+    from src.application.service_dto import ServiceDTO
 
     now = datetime.utcnow()
     return ServiceDTO(

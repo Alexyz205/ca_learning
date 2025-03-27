@@ -1,4 +1,4 @@
-from ..interface_adapters.repositories.service_repository import ServiceRepository
+from ..application.repositories.service_repository import ServiceRepository
 from ..domain.service_entity import Service
 from ..domain.exceptions import ServiceValidationError, ServiceAlreadyExistsError
 from .create_service_input_port import CreateServiceInputPort

@@ -1,6 +1,6 @@
 import pytest
 from uuid import UUID
-from src.usecases.get_service_interactor import GetServiceInteractor
+from src.application.get_service_interactor import GetServiceInteractor
 from tests.unit.usecases.mocks import MockServiceRepository, MockGetServiceOutputPort
 
 

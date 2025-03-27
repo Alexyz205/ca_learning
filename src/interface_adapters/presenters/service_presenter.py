@@ -1,9 +1,9 @@
 import logging
 from typing import Optional, List
-from ...usecases.get_service_output_port import GetServiceOutputPort
-from ...usecases.create_service_output_port import CreateServiceOutputPort
-from ...usecases.service_dto import ServiceDTO
-from ..dtos.service_response_dto import ServiceResponseDTO
+from ...application.get_service_output_port import GetServiceOutputPort
+from ...application.create_service_output_port import CreateServiceOutputPort
+from ...application.service_dto import ServiceDTO
+from ...infrastructure.dtos.service_response_dto import ServiceResponseDTO
 from ...infrastructure.logging_context import get_contextual_logger, operation_context
 
 logger = get_contextual_logger(__name__)

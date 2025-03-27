@@ -17,7 +17,7 @@ This project rigorously follows the Clean Architecture pattern with four distinc
 - Independent of frameworks, databases, or external concerns
 - Example: `service_entity.py` defines the core Service entity with factory methods
 
-### 2. Use Cases Layer (`src/usecases/`)
+### 2. Use Cases Layer (`src/application/`)
 - Contains application-specific business logic
 - Implements input and output ports using interfaces
 - Orchestrates flows of data between domain entities and external interfaces
@@ -114,7 +114,7 @@ src/
 │   │   └── service_rest_controller.py # Service API endpoints
 │   ├── dtos/              # Data transfer objects
 │   └── presenters/        # Response formatters
-└── usecases/             # Application business rules
+└── application/             # Application business rules
     ├── create_service_input_port.py # Input port for service creation
     ├── create_service_interactor.py # Implementation of service creation
     ├── create_service_output_port.py # Output port for service creation
