@@ -1,9 +1,12 @@
 import pytest
 from src.application.create_service_interactor import CreateServiceInteractor
-from src.application.service_dto import ServiceDTO
+from src.interface_adapters.dtos.service_dto import ServiceDTO  # Updated import
 from tests.unit.usecases.mocks import (
     MockServiceRepository,
     MockCreateServiceOutputPort,
+    MockLoggerPort,
+    MockLoggingContextPort,
+    MockMetricsPort,
 )
 
 
@@ -12,9 +15,18 @@ def test_create_service_success(service_data):
     # Given
     repository = MockServiceRepository()
     output_port = MockCreateServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = CreateServiceInteractor(repository=repository, output_port=output_port)
+    interactor = CreateServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.create_service(
         name=service_data["name"], description=service_data["description"]
     )
@@ -39,9 +51,18 @@ def test_create_service_empty_name():
     # Given
     repository = MockServiceRepository()
     output_port = MockCreateServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = CreateServiceInteractor(repository=repository, output_port=output_port)
+    interactor = CreateServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.create_service(name="", description="Test Description")
 
     # Then
@@ -62,9 +83,18 @@ def test_create_service_name_too_long():
     # Given
     repository = MockServiceRepository()
     output_port = MockCreateServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = CreateServiceInteractor(repository=repository, output_port=output_port)
+    interactor = CreateServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.create_service(
         name="a" * 101, description="Test Description"  # 101 characters
     )
@@ -87,9 +117,18 @@ def test_create_service_description_too_long():
     # Given
     repository = MockServiceRepository()
     output_port = MockCreateServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = CreateServiceInteractor(repository=repository, output_port=output_port)
+    interactor = CreateServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.create_service(
         name="Test Name", description="a" * 501  # 501 characters
     )

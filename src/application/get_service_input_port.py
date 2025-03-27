@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
-from .service_dto import ServiceDTO
+from ..interface_adapters.dtos.service_dto import ServiceDTO
 
 
 class GetServiceInputPort(ABC):
@@ -13,6 +13,6 @@ class GetServiceInputPort(ABC):
         pass
 
     @abstractmethod
-    def get_all_services(self) -> list[ServiceDTO]:
+    def get_all_services(self) -> List[ServiceDTO]:
         """Get all services."""
         pass

@@ -1,79 +1,79 @@
 import logging
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
-
 from ..application.repositories.service_repository import ServiceRepository
 from ..domain.exceptions import ServiceNotFoundError
+from ..domain.service_entity import Service
+from ..domain.ports.logger_port import LoggerPort, LoggingContextPort
+from ..domain.ports.metrics_port import MetricsPort
 from .get_service_input_port import GetServiceInputPort
 from .get_service_output_port import GetServiceOutputPort
-from .service_dto import ServiceDTO
-from ..infrastructure.logging_context import get_contextual_logger, operation_context
-from ..infrastructure.metrics import SERVICES_COUNT
-from ..infrastructure.metrics_decorator import track_operation
-
-logger = get_contextual_logger(__name__)
+from ..interface_adapters.dtos.service_dto import ServiceDTO
 
 
 class GetServiceInteractor(GetServiceInputPort):
     """Implementation of the get service use case."""
 
     def __init__(
-        self, repository: ServiceRepository, output_port: GetServiceOutputPort
+        self,
+        repository: ServiceRepository,
+        output_port: GetServiceOutputPort,
+        logger: LoggerPort,
+        logging_context: LoggingContextPort,
+        metrics: MetricsPort,
     ):
+        """Initialize with required dependencies."""
         self.repository = repository
         self.output_port = output_port
-        logger.debug("Initialized GetServiceInteractor")
+        self.logger = logger
+        self.logging_context = logging_context
+        self.metrics = metrics
+        self.logger.debug("Initialized GetServiceInteractor")
 
-    @track_operation("get_service")
     def get_service(self, service_id: UUID) -> Optional[ServiceDTO]:
         """Get a service by ID and present it through the output port."""
-        with operation_context("get_service", logger, service_id=str(service_id)):
+        with self.logging_context.operation_context(
+            "get_service", self.logger, service_id=str(service_id)
+        ):
             try:
+                # Get the domain entity from repository
                 service = self.repository.get_by_id(service_id)
-                dto = ServiceDTO(
-                    id=service.id,
-                    name=service.name,
-                    description=service.description,
-                    created_at=service.created_at,
-                    updated_at=service.updated_at,
-                    is_active=service.is_active,
-                )
+
+                # Convert domain entity to DTO for crossing the boundary
+                dto = ServiceDTO.from_domain(service)
+
+                # Present the DTO through the output port
                 self.output_port.present_service(dto)
                 return dto
+
             except ServiceNotFoundError as e:
-                logger.warning(f"Service not found", extra={"error": str(e)})
+                self.logger.warning("Service not found", error=str(e))
                 self.output_port.present_error(str(e))
                 return None
             except Exception as e:
-                logger.error("Error getting service", extra={"error": str(e)})
+                self.logger.error("Error getting service", error=str(e))
                 self.output_port.present_error(f"Internal error: {str(e)}")
                 return None
 
-    @track_operation("get_all_services")
-    def get_all_services(self) -> list[ServiceDTO]:
+    def get_all_services(self) -> List[ServiceDTO]:
         """Get all services and present them through the output port."""
-        with operation_context("get_all_services", logger):
+        with self.logging_context.operation_context("get_all_services", self.logger):
             try:
+                # Get all domain entities from repository
                 services = self.repository.get_all()
-                dtos = [
-                    ServiceDTO(
-                        id=service.id,
-                        name=service.name,
-                        description=service.description,
-                        created_at=service.created_at,
-                        updated_at=service.updated_at,
-                        is_active=service.is_active,
-                    )
-                    for service in services
-                ]
+
+                # Convert domain entities to DTOs for crossing the boundary
+                dtos = [ServiceDTO.from_domain(service) for service in services]
 
                 # Update metric for total number of services
-                SERVICES_COUNT.set(len(dtos))
+                self.metrics.set_gauge("services_count", len(dtos))
+                self.logger.info("Retrieved services", count=len(dtos))
 
-                logger.info("Retrieved services", extra={"count": len(dtos)})
+                # Present DTOs through the output port
                 self.output_port.present_services(dtos)
                 return dtos
+
             except Exception as e:
-                logger.error("Error getting all services", extra={"error": str(e)})
+                self.logger.error("Error getting all services", error=str(e))
                 self.output_port.present_error(f"Internal error: {str(e)}")
                 return []

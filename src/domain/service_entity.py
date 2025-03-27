@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID, uuid4
 
+
 @dataclass
 class Service:
     """Core domain entity representing a service."""
+
     id: UUID
     name: str
     description: str
@@ -13,7 +15,7 @@ class Service:
     is_active: bool
 
     @staticmethod
-    def create(name: str, description: str) -> 'Service':
+    def create(name: str, description: str) -> "Service":
         """Factory method to create a new service."""
         now = datetime.utcnow()
         return Service(
@@ -22,5 +24,5 @@ class Service:
             description=description,
             created_at=now,
             updated_at=now,
-            is_active=True
+            is_active=True,
         )

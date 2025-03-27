@@ -1,3 +1,5 @@
+"""DTOs for service requests that cross the interface boundary."""
+
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -10,7 +12,6 @@ class CreateServiceRequest(BaseModel):
     description: str = Field(
         "", max_length=500, description="Description of the service"
     )
-
     model_config = ConfigDict(
         json_schema_extra={
             "example": {

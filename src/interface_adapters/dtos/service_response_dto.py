@@ -1,9 +1,11 @@
+"""DTOs for service responses that cross the interface boundary."""
+
 from datetime import datetime
 from typing import List
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 
-from ...application.service_dto import ServiceDTO
+from .service_dto import ServiceDTO
 
 
 class ServiceResponseDTO(BaseModel):

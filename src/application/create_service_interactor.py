@@ -1,30 +1,42 @@
 from ..application.repositories.service_repository import ServiceRepository
 from ..domain.service_entity import Service
 from ..domain.exceptions import ServiceValidationError, ServiceAlreadyExistsError
+from ..domain.ports.logger_port import LoggerPort, LoggingContextPort
+from ..domain.ports.metrics_port import MetricsPort
 from .create_service_input_port import CreateServiceInputPort
 from .create_service_output_port import CreateServiceOutputPort
-from .service_dto import ServiceDTO
-from ..infrastructure.logging_context import get_contextual_logger, operation_context
-from ..infrastructure.metrics import SERVICES_COUNT
-from ..infrastructure.metrics_decorator import track_operation
-
-logger = get_contextual_logger(__name__)
+from ..interface_adapters.dtos.service_dto import ServiceDTO
 
 
 class CreateServiceInteractor(CreateServiceInputPort):
     """Implementation of the create service use case."""
 
     def __init__(
-        self, repository: ServiceRepository, output_port: CreateServiceOutputPort
+        self,
+        repository: ServiceRepository,
+        output_port: CreateServiceOutputPort,
+        logger: LoggerPort,
+        logging_context: LoggingContextPort,
+        metrics: MetricsPort,
     ):
+        """Initialize with required dependencies."""
         self.repository = repository
         self.output_port = output_port
-        logger.debug("Initialized CreateServiceInteractor")
+        self.logger = logger
+        self.logging_context = logging_context
+        self.metrics = metrics
+        self.logger.debug("Initialized CreateServiceInteractor")
 
-    @track_operation("create_service")
+    @property
+    def track_operation(self):
+        """Get the track_operation decorator."""
+        return self.metrics.track_operation("create_service")
+
     def create_service(self, name: str, description: str) -> ServiceDTO:
         """Create a new service and present it through the output port."""
-        with operation_context("create_service", logger, service_name=name):
+        with self.logging_context.operation_context(
+            "create_service", self.logger, service_name=name
+        ):
             try:
                 # Basic validation
                 if not name:
@@ -34,59 +46,46 @@ class CreateServiceInteractor(CreateServiceInputPort):
                 if len(description) > 500:
                     raise ServiceValidationError("Service description too long")
 
-                # Create and save the service
-                service = Service.create(name=name, description=description)
-                logger.debug(
-                    "Created service entity", extra={"service_id": str(service.id)}
+                # Create and save the service as a domain entity
+                service_entity = Service.create(name=name, description=description)
+                self.logger.debug(
+                    "Created service entity", service_id=str(service_entity.id)
                 )
 
-                saved_service = self.repository.save(service)
-                logger.info(
+                # Save to repository and get domain entity back
+                saved_service = self.repository.save(service_entity)
+                self.logger.info(
                     "Saved service",
-                    extra={
-                        "service_id": str(saved_service.id),
-                        "name": saved_service.name,
-                    },
+                    service_id=str(saved_service.id),
+                    name=saved_service.name,
                 )
 
                 # Increment the services count metric
                 try:
-                    current = SERVICES_COUNT._value.get()
-                    if current is not None:
-                        SERVICES_COUNT.set(current + 1)
-                    else:
-                        SERVICES_COUNT.set(1)
+                    self.metrics.set_gauge(
+                        "services_count", 1
+                    )  # This will be handled by the adapter
                 except Exception as e:
-                    logger.warning(
-                        "Failed to update services count metric",
-                        extra={"error": str(e)},
+                    self.logger.warning(
+                        "Failed to update services count metric", error=str(e)
                     )
 
-                # Create DTO and present response
-                dto = ServiceDTO(
-                    id=saved_service.id,
-                    name=saved_service.name,
-                    description=saved_service.description,
-                    created_at=saved_service.created_at,
-                    updated_at=saved_service.updated_at,
-                    is_active=saved_service.is_active,
-                )
+                # Convert domain entity to DTO for crossing the boundary
+                dto = ServiceDTO.from_domain(saved_service)
+
+                # Present DTO through output port
                 self.output_port.present_created_service(dto)
                 return dto
 
             except ServiceValidationError as e:
-                logger.warning("Service validation failed", extra={"error": str(e)})
+                self.logger.warning("Service validation failed", error=str(e))
                 self.output_port.present_creation_error(str(e))
                 return ServiceDTO()
-
             except ServiceAlreadyExistsError as e:
-                logger.error("Service already exists", extra={"error": str(e)})
+                self.logger.error("Service already exists", error=str(e))
                 self.output_port.present_creation_error(str(e))
                 return ServiceDTO()
-
             except Exception as e:
-                logger.error(
-                    "Unexpected error creating service", extra={"error": str(e)}
-                )
+                self.logger.error("Unexpected error creating service", error=str(e))
                 self.output_port.present_creation_error(f"Internal error: {str(e)}")
                 return ServiceDTO()

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .service_dto import ServiceDTO
+from ..interface_adapters.dtos.service_dto import ServiceDTO
 
 
 class CreateServiceInputPort(ABC):

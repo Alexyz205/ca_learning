@@ -1,7 +1,13 @@
 import pytest
 from uuid import UUID
 from src.application.get_service_interactor import GetServiceInteractor
-from tests.unit.usecases.mocks import MockServiceRepository, MockGetServiceOutputPort
+from tests.unit.usecases.mocks import (
+    MockServiceRepository,
+    MockGetServiceOutputPort,
+    MockLoggerPort,
+    MockLoggingContextPort,
+    MockMetricsPort,
+)
 
 
 def test_get_service_success(service_entity):
@@ -9,10 +15,19 @@ def test_get_service_success(service_entity):
     # Given
     repository = MockServiceRepository()
     output_port = MockGetServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
     repository.save(service_entity)
 
     # When
-    interactor = GetServiceInteractor(repository=repository, output_port=output_port)
+    interactor = GetServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.get_service(service_entity.id)
 
     # Then
@@ -35,9 +50,18 @@ def test_get_service_not_found():
     # Given
     repository = MockServiceRepository()
     output_port = MockGetServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = GetServiceInteractor(repository=repository, output_port=output_port)
+    interactor = GetServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.get_service(UUID("00000000-0000-0000-0000-000000000000"))
 
     # Then
@@ -56,10 +80,19 @@ def test_get_all_services(service_entity):
     # Given
     repository = MockServiceRepository()
     output_port = MockGetServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
     repository.save(service_entity)
 
     # When
-    interactor = GetServiceInteractor(repository=repository, output_port=output_port)
+    interactor = GetServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.get_all_services()
 
     # Then
@@ -80,9 +113,18 @@ def test_get_all_services_empty():
     # Given
     repository = MockServiceRepository()
     output_port = MockGetServiceOutputPort()
+    logger = MockLoggerPort()
+    logging_context = MockLoggingContextPort()
+    metrics = MockMetricsPort()
 
     # When
-    interactor = GetServiceInteractor(repository=repository, output_port=output_port)
+    interactor = GetServiceInteractor(
+        repository=repository,
+        output_port=output_port,
+        logger=logger,
+        logging_context=logging_context,
+        metrics=metrics,
+    )
     result = interactor.get_all_services()
 
     # Then
