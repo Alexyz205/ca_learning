@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from ..interface_adapters.dtos.service_dto import ServiceDTO
+from ..domain.service_entity import Service
 
 
 class CreateServiceOutputPort(ABC):
     """Output port interface for presenting the result of service creation."""
 
     @abstractmethod
-    def present_created_service(self, service: ServiceDTO) -> None:
+    def present_created_service(self, service: Service) -> None:
         """Present the created service."""
         pass
 

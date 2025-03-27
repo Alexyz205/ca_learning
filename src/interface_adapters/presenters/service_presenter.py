@@ -2,6 +2,7 @@ import logging
 from typing import Optional, List
 from ...application.get_service_output_port import GetServiceOutputPort
 from ...application.create_service_output_port import CreateServiceOutputPort
+from ...domain.service_entity import Service
 from ...interface_adapters.dtos.service_dto import ServiceDTO
 from ...interface_adapters.dtos.service_response_dto import ServiceResponseDTO
 from ...infrastructure.logging_context import get_contextual_logger, operation_context
@@ -18,12 +19,16 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
         self.error: Optional[str] = None
         logger.debug("Initialized ServicePresenter")
 
-    def _to_response_dto(self, dto: ServiceDTO) -> ServiceResponseDTO:
-        """Convert internal DTO to response DTO."""
+    def _to_response_dto(self, service: Service) -> ServiceResponseDTO:
+        """Convert domain entity to response DTO."""
         with operation_context(
-            "convert_to_response_dto", logger, service_id=str(dto.id)
+            "convert_to_response_dto", logger, service_id=str(service.id)
         ):
             try:
+                # First convert domain entity to intermediate DTO
+                dto = ServiceDTO.from_domain(service)
+
+                # Then convert to response DTO
                 return ServiceResponseDTO(
                     id=dto.id,
                     name=dto.name,
@@ -34,12 +39,12 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
                 )
             except Exception as e:
                 logger.error(
-                    "Error converting DTO to response",
-                    extra={"error": str(e), "service_id": str(dto.id)},
+                    "Error converting entity to response",
+                    extra={"error": str(e), "service_id": str(service.id)},
                 )
                 raise
 
-    def present_service(self, service: Optional[ServiceDTO]) -> None:
+    def present_service(self, service: Optional[Service]) -> None:
         """Present a single service."""
         with operation_context("present_service", logger):
             if service:
@@ -56,7 +61,7 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
                 self.error = "Service not found"
                 self.response = None
 
-    def present_services(self, services: List[ServiceDTO]) -> None:
+    def present_services(self, services: List[Service]) -> None:
         """Present multiple services."""
         with operation_context("present_services", logger, count=len(services)):
             try:
@@ -75,7 +80,7 @@ class ServicePresenter(GetServiceOutputPort, CreateServiceOutputPort):
             self.response = None
             self.responses = []
 
-    def present_created_service(self, service: ServiceDTO) -> None:
+    def present_created_service(self, service: Service) -> None:
         """Present the created service."""
         with operation_context(
             "present_created_service", logger, service_id=str(service.id)

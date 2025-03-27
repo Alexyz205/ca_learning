@@ -1,6 +1,6 @@
 import pytest
 from src.application.create_service_interactor import CreateServiceInteractor
-from src.interface_adapters.dtos.service_dto import ServiceDTO  # Updated import
+from src.domain.service_entity import Service  # Updated import
 from tests.unit.usecases.mocks import (
     MockServiceRepository,
     MockCreateServiceOutputPort,
@@ -33,7 +33,7 @@ def test_create_service_success(service_data):
 
     # Then
     assert result is not None
-    assert isinstance(result, ServiceDTO)
+    assert isinstance(result, Service)  # Now expecting Service instead of ServiceDTO
     assert result.name == service_data["name"]
     assert result.description == service_data["description"]
 
@@ -67,7 +67,8 @@ def test_create_service_empty_name():
 
     # Then
     assert result is not None
-    assert result.id is None  # Empty DTO should be returned
+    assert result.name == ""  # Empty service should have empty name
+    assert result.description == ""  # Empty service should have empty description
 
     # Verify the repository was not called
     assert repository.save_called is False
@@ -101,7 +102,8 @@ def test_create_service_name_too_long():
 
     # Then
     assert result is not None
-    assert result.id is None  # Empty DTO should be returned
+    assert result.name == ""  # Empty service should have empty name
+    assert result.description == ""  # Empty service should have empty description
 
     # Verify the repository was not called
     assert repository.save_called is False
@@ -135,7 +137,8 @@ def test_create_service_description_too_long():
 
     # Then
     assert result is not None
-    assert result.id is None  # Empty DTO should be returned
+    assert result.name == ""  # Empty service should have empty name
+    assert result.description == ""  # Empty service should have empty description
 
     # Verify the repository was not called
     assert repository.save_called is False

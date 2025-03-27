@@ -5,7 +5,6 @@ from ..domain.ports.logger_port import LoggerPort, LoggingContextPort
 from ..domain.ports.metrics_port import MetricsPort
 from .create_service_input_port import CreateServiceInputPort
 from .create_service_output_port import CreateServiceOutputPort
-from ..interface_adapters.dtos.service_dto import ServiceDTO
 
 
 class CreateServiceInteractor(CreateServiceInputPort):
@@ -32,7 +31,7 @@ class CreateServiceInteractor(CreateServiceInputPort):
         """Get the track_operation decorator."""
         return self.metrics.track_operation("create_service")
 
-    def create_service(self, name: str, description: str) -> ServiceDTO:
+    def create_service(self, name: str, description: str) -> Service:
         """Create a new service and present it through the output port."""
         with self.logging_context.operation_context(
             "create_service", self.logger, service_name=name
@@ -70,22 +69,19 @@ class CreateServiceInteractor(CreateServiceInputPort):
                         "Failed to update services count metric", error=str(e)
                     )
 
-                # Convert domain entity to DTO for crossing the boundary
-                dto = ServiceDTO.from_domain(saved_service)
-
-                # Present DTO through output port
-                self.output_port.present_created_service(dto)
-                return dto
+                # Present domain entity through output port
+                self.output_port.present_created_service(saved_service)
+                return saved_service
 
             except ServiceValidationError as e:
                 self.logger.warning("Service validation failed", error=str(e))
                 self.output_port.present_creation_error(str(e))
-                return ServiceDTO()
+                return Service.create("", "")  # Return empty service for error case
             except ServiceAlreadyExistsError as e:
                 self.logger.error("Service already exists", error=str(e))
                 self.output_port.present_creation_error(str(e))
-                return ServiceDTO()
+                return Service.create("", "")  # Return empty service for error case
             except Exception as e:
                 self.logger.error("Unexpected error creating service", error=str(e))
                 self.output_port.present_creation_error(f"Internal error: {str(e)}")
-                return ServiceDTO()
+                return Service.create("", "")  # Return empty service for error case
